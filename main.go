@@ -17,10 +17,9 @@ func main() {
 
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
-	subrouter.HandleFunc("/", controllers.Home).Methods("GET")
 	subrouter.HandleFunc("/products", controllers.FindProduct).Methods("GET")
-	subrouter.HandleFunc("/product/{id}", controllers.Show).Methods("GET")
-	subrouter.HandleFunc("/product", controllers.Create).Methods("POST")
+	subrouter.HandleFunc("/product/{id}", controllers.GetProduct).Methods("GET")
+	subrouter.HandleFunc("/product", controllers.CreateProduct).Methods("POST")
 	subrouter.HandleFunc("/product/{id}", controllers.Update).Methods("PUT")
 	subrouter.HandleFunc("/product", controllers.Delete).Methods("DELETE")
 

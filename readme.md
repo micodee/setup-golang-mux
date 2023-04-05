@@ -29,6 +29,7 @@ create file main.go
   ```
 
 ## MIGRATION
+create db gorilla_crud in mysql
 
 create folder models
 
@@ -167,3 +168,158 @@ http.ListenAndServe("localhost:"+port, router)
 ```
 
 running go run . and check in postman : localhost:8000/api/v1/products
+
+## CRUD
+>controllers/product.go
+- get product by id
+
+    ```bash
+    func GetProduct(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	// 10 base, 64 size
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
+	if err != nil {
+		ResponError(w, http.StatusBadRequest, err.Error())
+		return
+	} 
+
+	var product []models.Product
+	if err := models.DB.First(&product, id).Error; err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			ResponError(w, http.StatusNotFound, "Product not found")
+			return
+		default:
+			ResponError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	ResponJson(w, http.StatusOK, product)
+    }
+    ```
+- create product
+
+    ```bash
+    func CreateProduct(w http.ResponseWriter, r *http.Request) {
+	var product models.Product
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&product); err != nil {
+		ResponError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	defer r.Body.Close()
+
+	if err := models.DB.Create(&product).Error; err != nil {
+		ResponError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ResponJson(w, http.StatusCreated, product)
+    }
+    ```
+
+    create in postman method POST>body>raw>json
+    ```bash
+    {
+        "name": "Topi",
+        "stock": 10,
+        "harga": 10000
+    }
+    ```
+
+- update product
+    ```bash
+    func Update(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    id, err := strconv.ParseInt(vars["id"], 10, 64)
+        if err != nil {
+            ResponError(w, http.StatusBadRequest, err.Error())
+            return
+        }
+
+        var product models.Product
+        decoder := json.NewDecoder(r.Body)
+        if err := decoder.Decode(&product); err != nil {
+            ResponError(w, http.StatusInternalServerError, err.Error())
+            return
+        }
+        defer r.Body.Close()
+
+        if models.DB.Where("id = ?", id).Updates(&product).RowsAffected == 0 {
+            ResponError(w, http.StatusBadRequest, "Unable to update product")
+            return
+        }
+
+        product.Id = id
+
+        ResponJson(w, http.StatusOK, product)
+    }
+    ```
+    update in postman method PUT>body>raw>json
+    - endpoint error : localhost:8000/api/v1/product/100
+        ```bash
+        {
+            "name": "Topi",
+            "stock": 10,
+            "harga": 10000
+        }
+        ```
+- delete product
+
+    ```bash
+    func Delete(w http.ResponseWriter, r *http.Request) {
+        input := map[string]string{"id": ""}
+
+        decoder := json.NewDecoder(r.Body)
+        if err := decoder.Decode(&input); err != nil {
+            ResponError(w, http.StatusBadRequest, err.Error())
+            return
+        }
+
+        defer r.Body.Close()
+
+        var product models.Product
+        if models.DB.Delete(&product, input["id"]).RowsAffected == 0 {
+            ResponError(w, http.StatusBadRequest, "input invalid")
+            return
+        }
+
+        response := map[string]string{"message": "Product success deleted"}
+        ResponJson(w, http.StatusOK, response)
+    }
+    ```
+    delete in postman method DELETE>body>raw>json
+    - endpoint error : localhost:8000/api/v1/product
+        ```bash
+        {
+            "id": "1000"
+        }
+        ```
+
+add route endpoint crud file in main.go
+>main.go
+
+    ```bash
+    func main() {
+        // framework gorilla mux
+        router := mux.NewRouter()
+        
+        models.ConnDB()
+
+        subrouter := router.PathPrefix("/api/v1").Subrouter()
+
+        subrouter.HandleFunc("/products", controllers.FindProduct).Methods("GET")
+        subrouter.HandleFunc("/product/{id}", controllers.GetProduct).Methods("GET")
+        subrouter.HandleFunc("/product", controllers.CreateProduct).Methods("POST")
+        subrouter.HandleFunc("/product/{id}", controllers.Update).Methods("PUT")
+        subrouter.HandleFunc("/product", controllers.Delete).Methods("DELETE")
+
+        // create server port
+        port := "8000"
+        fmt.Println("server running on port", port)
+        http.ListenAndServe("localhost:"+port, router)
+    }
+    ```
