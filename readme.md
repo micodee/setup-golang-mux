@@ -1,4 +1,29 @@
-# PREPARE
+# CRUD Backend Golang Gorilla Mux
+
+## Technology
+- Golang
+- Gorm
+- Mysql
+
+## Install
+install all package using GO
+```bash
+go mod tidy
+go mod download
+go get
+```
+
+## Usage
+Local
+```bash
+go run main.go
+```
+
+## Postman Collection
+- Link
+
+# Create Project
+
 
 ```bash
 go mod init project
@@ -302,24 +327,24 @@ running go run . and check in postman : localhost:8000/api/v1/products
 add route endpoint crud file in main.go
 >main.go
 
-    ```bash
-    func main() {
-        // framework gorilla mux
-        router := mux.NewRouter()
-        
-        models.ConnDB()
+```bash
+func main() {
+    // framework gorilla mux
+    router := mux.NewRouter()
+    
+    models.ConnDB()
 
-        subrouter := router.PathPrefix("/api/v1").Subrouter()
+    subrouter := router.PathPrefix("/api/v1").Subrouter()
 
-        subrouter.HandleFunc("/products", controllers.FindProduct).Methods("GET")
-        subrouter.HandleFunc("/product/{id}", controllers.GetProduct).Methods("GET")
-        subrouter.HandleFunc("/product", controllers.CreateProduct).Methods("POST")
-        subrouter.HandleFunc("/product/{id}", controllers.Update).Methods("PUT")
-        subrouter.HandleFunc("/product", controllers.Delete).Methods("DELETE")
+    subrouter.HandleFunc("/products", controllers.FindProduct).Methods("GET")
+    subrouter.HandleFunc("/product/{id}", controllers.GetProduct).Methods("GET")
+    subrouter.HandleFunc("/product", controllers.CreateProduct).Methods("POST")
+    subrouter.HandleFunc("/product/{id}", controllers.Update).Methods("PUT")
+    subrouter.HandleFunc("/product", controllers.Delete).Methods("DELETE")
 
-        // create server port
-        port := "8000"
-        fmt.Println("server running on port", port)
-        http.ListenAndServe("localhost:"+port, router)
-    }
-    ```
+    // create server port
+    port := "8000"
+    fmt.Println("server running on port", port)
+    http.ListenAndServe("localhost:"+port, router)
+}
+```
