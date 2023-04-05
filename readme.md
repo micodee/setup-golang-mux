@@ -20,7 +20,7 @@ go run main.go
 ```
 
 ## Postman Collection
-- [Link Collection](https://api.postman.com/collections/24967780-fb14cb40-6e45-4cc8-9af1-d567d0fed858?access_key=PMAT-01GX84PSZ7KWNA9YJMG4KG9XMX)
+- [Link Collection](https://api.postman.com/collections/24967780-b55e9e20-edf2-4aee-826c-18600bf149a3?access_key=PMAT-01GX85E22CTGA788NBDNE9MK58)
 
 # Create Project
 
