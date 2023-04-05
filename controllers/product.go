@@ -14,12 +14,19 @@ func ResponJson(w http.ResponseWriter, code int, payload interface{}) {
 	w.Write(response)
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
+func ResponError(w http.ResponseWriter, code int, message string) {
+	ResponJson(w, code, map[string]string{"message": message})
+}
+
+func FindProduct(w http.ResponseWriter, r *http.Request) {
 	var products []models.Product
 
 	if err := models.DB.Find(&products).Error; err != nil {
-		fmt.Println(err)
+		ResponError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
+
+	ResponJson(w, http.StatusOK, products)
 }
 func Show(w http.ResponseWriter, r *http.Request) {
 

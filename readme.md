@@ -80,3 +80,90 @@ fmt.Println("server running on port", port)
 http.ListenAndServe("localhost:"+port, router)
 }
 ```
+
+create subrouter for documentation
+```bash
+func main() {
+router := mux.NewRouter()
+
+models.ConnDB()
+
+    	subrouter := router.PathPrefix("/api/v1").Subrouter()
+
+port := "8000"
+fmt.Println("server running on port", port)
+http.ListenAndServe("localhost:"+port, router)
+}
+```
+
+## CONTROLLERS
+
+create folder controllers
+
+- add file product.go
+    >product.go
+    ```bash
+    func FindProducts(w http.ResponseWriter, r *http.Request) {
+    var products []models.Product
+
+	if err := models.DB.Find(&products).Error; err != nil {
+		fmt.Println(err)
+	}
+
+	response, _ := json.Marshal(products)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+    }
+    ```
+
+    or create a separate response function
+
+    ```bash
+
+    func ResponJson(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
+    }
+
+    func ResponError(w http.ResponseWriter, code int, message string) {
+	ResponJson(w, code, map[string]string{"message": message})
+    }
+    ```
+    and then
+    ```bash
+    
+    func FindProduct(w http.ResponseWriter, r *http.Request) {
+	var products []models.Product
+
+	if err := models.DB.Find(&products).Error; err != nil {
+	ResponError(w, http.StatusInternalServerError, err.Error())
+	return
+	}
+
+	ResponJson(w, http.StatusOK, products)
+    }
+    ```
+
+write router in main.go
+
+>main.go
+```bash
+func main() {
+router := mux.NewRouter()
+
+models.ConnDB()
+
+subrouter := router.PathPrefix("/api/v1").Subrouter()
+
+    subrouter.HandleFunc("/products", controllers.FindProduct).Methods("GET")
+
+port := "8000"
+fmt.Println("server running on port", port)
+http.ListenAndServe("localhost:"+port, router)
+}
+```
+
+running go run . and check in postman : localhost:8000/api/v1/products
